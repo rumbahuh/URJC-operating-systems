@@ -65,7 +65,7 @@ main(int argc, char *argv[])
 	int index = 0;
 
     if (argc < 1) {
-        fprintf(stderr, "error: no arguments\n");
+        printf("error: no arguments\n");
         return EXIT_FAILURE;
     }
     
