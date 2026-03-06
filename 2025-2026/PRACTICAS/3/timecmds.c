@@ -1,15 +1,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/wait.h>
 
 enum {
     MAX_TOKENS_PER_ARG = 64
 };
 
+struct timecmd {
+	char * cmd;
+	pid_t num;
+	int time;
+	char * status;
+};
+
 int
 tokenize(char *argument, char **buffer)
 {
-	int localstatus = 0, i = 0;
+	int status = 0, i = 0;
 
 	// from strtok_r(3) man page
 	char *str1, *str2, *token, *subtoken;
@@ -33,16 +42,47 @@ tokenize(char *argument, char **buffer)
     }
 	buffer[i] = NULL;
 
-	return localstatus;
+	return status;
+}
+
+int
+executeprogram(char ***argvpointers, int position, struct timecmd * chain)
+{
+	int status = 0;
+	pid_t pid = 0;
+
+	char *path = argvpointers[position][0];
+	// already terminated in NULL in definition
+	char **args = argvpointers[position];
+
+	pid = fork();
+	if (pid > 0) {
+		chain[position].num = pid;
+		chain[position].cmd = path;
+	}
+
+	switch(pid) {
+	case -1:
+		fprintf(stderr, "Fork failed\n");
+		return -1;
+	case 0:
+		execv(path, args);
+		fprintf(stderr, "Execution failed\n");
+		status = -1;
+		break;
+	}
+
+	return status;
 }
 
 int
 main(int argc, char * argv[])
 {
-	int status = 0, i = 0, j = 0, k = 0;
+	int status = 0, i = 0, j = 0, k = 0, l = 0;
 	argc--;
 	argv++;
 
+	struct timecmd *timecmds = malloc(sizeof(struct timecmd) * argc);
 	// array of arrays of strings
 	char ***argvptrs = malloc(sizeof(char **) * argc);
 	char **copyofargv = malloc(sizeof(char *) * argc);
@@ -55,18 +95,26 @@ main(int argc, char * argv[])
 	}
 	
 	for (; k < argc; k++) {
-        printf("Shelf %d content:\n", i);
-        for (int l = 0; argvptrs[k][l] != NULL; l++) {
-            printf("  Slot %d: %s\n", l, argvptrs[k][l]);
-        }
+		status = executeprogram(argvptrs, k, timecmds);
+		if (status) {
+			timecmds[k].status = "success";
+		} else {
+			timecmds[k].status = "failure";
+		}
     }
 
-	for (; j < argc; j++) {
-		free(argvptrs[j]);
-		free(copyofargv[j]);
+	for(; j < argc; j++) {
+		pid_t finished_pid = waitpid(timecmds[j].num, &status, 0);
+		printf("cmd: %s, pid: %d, status: %s\n", timecmds[j].cmd, finished_pid, timecmds[j].status);
+	} 
+
+	for (; l < argc; l++) {
+		free(argvptrs[l]);
+		free(copyofargv[l]);
 	}
 	free(argvptrs);
 	free(copyofargv);
+	free(timecmds);
 
 	return status;
 }
