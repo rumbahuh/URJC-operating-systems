@@ -112,7 +112,7 @@ waitall(struct timecmd *timecmds, int argc)
 			cmd->status = "success";
 		} else {
 			cmd->status = "failure";
-			status = -1;
+			status = 1;
 		}
 		printf("cmd: %s, pid: %d, time: %d seconds, status: %s\n",
 		       cmd->fullstring, finished_pid, elapsed, cmd->status);
