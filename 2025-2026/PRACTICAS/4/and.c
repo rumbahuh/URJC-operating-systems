@@ -10,12 +10,14 @@ enum {
 };
 
 int
-getrealsize(char * chain)
+getrealsize(char *chain)
 {
 	int i = 0, counter = 1;
 	char del = ' ';
-	for(; i < strlen(chain); i++) {
-		if (chain[i] == del) counter++;
+
+	for (; i < strlen(chain); i++) {
+		if (chain[i] == del)
+			counter++;
 	}
 
 	return counter;
@@ -52,14 +54,14 @@ tokenize(char *argument, char **buffer)
 }
 
 int
-hijoconcurrente(char * fullcmd, char * args[])
+hijoconcurrente(char *fullcmd, char *args[])
 {
 	int sts = 0;
 	int status = 0;
 	int pid = 0;
 
 	pid = fork();
-	switch(pid) {
+	switch (pid) {
 	case -1:
 		fprintf(stderr, "bad fork\n");
 		return 1;
@@ -70,8 +72,8 @@ hijoconcurrente(char * fullcmd, char * args[])
 		break;
 	}
 
-	while((pid = wait(&sts)) != -1) {
-		if(WIFEXITED(sts)) {
+	while ((pid = wait(&sts)) != -1) {
+		if (WIFEXITED(sts)) {
 			return WEXITSTATUS(sts);
 		} else {
 			status = 1;
@@ -82,10 +84,11 @@ hijoconcurrente(char * fullcmd, char * args[])
 }
 
 int
-main(int argc, char * argv[])
+main(int argc, char *argv[])
 {
 	int i = 0, status = 0, size = 0;
-	char ** tmparray;
+	char **tmparray;
+
 	argc--;
 	argv++;
 
@@ -94,13 +97,13 @@ main(int argc, char * argv[])
 		return 1;
 	}
 
-	do
-	{	
+	do {
 		char specpath[256];
-    	strcpy(specpath, "/bin/");
+
+		strcpy(specpath, "/bin/");
 
 		size = getrealsize(argv[i]);
-		tmparray = malloc(sizeof(char *) * (size + 1)); // + 1 cause of NULL
+		tmparray = malloc(sizeof(char *) * (size + 1));	// + 1 cause of NULL
 		tokenize(argv[i], tmparray);
 
 		strcat(specpath, tmparray[0]);
@@ -109,9 +112,9 @@ main(int argc, char * argv[])
 		if (status != 0) {
 			return status;
 		}
-		
+
 		i++;
-	} while(status != 1 && i < argc);
+	} while (status != 1 && i < argc);
 
 	return EXIT_SUCCESS;
 }
