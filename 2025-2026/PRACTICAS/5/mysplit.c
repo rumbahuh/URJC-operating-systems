@@ -5,6 +5,10 @@
 #include <err.h>
 #include <unistd.h>
 
+/* 
+ * Passes string to int using strtol.
+ * Handles errors.
+ */
 int
 parsestring(char * stringnumber)
 {
@@ -29,6 +33,12 @@ parsestring(char * stringnumber)
 	return val;
 }
 
+/* 
+ * Reads bytes on file.
+ * Every nbytes it adds to nsubfiles
+ * which is a counter and updates the
+ * byte position of total of file bytes.
+ */
 int
 calculatesubfiles(int nbytes, char * file, char * buffer)
 {
@@ -48,18 +58,24 @@ calculatesubfiles(int nbytes, char * file, char * buffer)
 	return nsubfiles;
 }
 
+/* 
+ * For each filenumbers it creates a char id,
+ * starting at 000, 001, etc,.
+ * Adds it to buffernames.
+ */
 void
-createnames(char ** buffernames, int filenumbers)
+createnames(char ** buffernames, int filenumbers, int length, char * filename)
 {
 	int i = 0;
-	char *current = "000";
 
 	for(; i < filenumbers; i++) {
-		buffernames[i] = current;
-		// update current
+        snprintf(buffernames[i], length, "%03d%s", i, filename);
 	}
 }
 
+/* 
+ * Creates file and write bytes from file up to Nbytes.
+ */
 int
 splitfile(char ** buffernames, int filenumbers, int nbytes, char * file)
 {
@@ -68,13 +84,24 @@ splitfile(char ** buffernames, int filenumbers, int nbytes, char * file)
 
 	for(; i < filenumbers; i++) {
 		name = buffernames[i];
-		// concat name+file
-		// createfile name+file
-		// write nbytes from file in name+file
+		// createfile name
+		// write nbytes from file in name
 		(void)name;
 	}
 
 	return 0;
+}
+
+void
+freeall(char * parent, char ** files, int number)
+{
+	int i = 0;
+
+	free(parent);
+	for(; i < number; i++) {
+		free(files[i]);
+	}
+	free(files);
 }
 
 int
@@ -86,6 +113,8 @@ main(int argc, char* argv[])
 	char ** filenames;
 	char * parentbuffer;
 	int status = 0;
+	int len = 0;
+	int j = 0;
 
 	argc--;
 	argv++;
@@ -96,6 +125,7 @@ main(int argc, char* argv[])
 	}
 
 	parentfile = argv[1];
+	len = strlen("000") + strlen(parentfile) + 1; // + '\0'
 
 	nbytes = parsestring(argv[0]);
 	if (nbytes == -1) {
@@ -112,17 +142,18 @@ main(int argc, char* argv[])
 	}
 
 	filenames = malloc(sizeof(char*) * subfiles);
-	createnames(filenames, subfiles);
+	for(; j < subfiles; j++) {
+		filenames[j] = malloc(sizeof(char) * len);
+	}
+	createnames(filenames, subfiles, len, parentfile);
 
 	status = splitfile(filenames, subfiles, nbytes, parentfile);
 	if (status == -1) {
 			fprintf(stderr, "usage: mysplit N file\n");
-			free(parentbuffer);
-			free(filenames);
+			freeall(parentbuffer, filenames, subfiles);
 			exit(EXIT_FAILURE);
 		}
 
-	free(parentbuffer);
-	free(filenames);
+	freeall(parentbuffer, filenames, subfiles);
 	exit(EXIT_SUCCESS);
 }
