@@ -135,11 +135,13 @@ freeall(char * parent, char ** files, int number)
 {
 	int i = 0;
 
-	free(parent);
-	for(; i < number; i++) {
-		free(files[i]);
-	}
-	free(files);
+	if (files != NULL) {
+        for (; i < number; i++) {
+            free(files[i]);
+        }
+        free(files);
+    }
+    free(parent);
 }
 
 int
@@ -169,6 +171,8 @@ main(int argc, char* argv[])
 		fprintf(stderr, "usage: mysplit N file\n");
 		exit(EXIT_FAILURE);
 	}
+	if (nbytes <= 0) exit(EXIT_FAILURE);
+	
 	parentbuffer = malloc(sizeof(char) * nbytes);
 	if (parentbuffer == NULL) {
 		fprintf(stderr, "bad malloc");
@@ -182,16 +186,18 @@ main(int argc, char* argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	filenames = malloc(sizeof(char*) * subfiles);
+	filenames = calloc(subfiles, sizeof(char*));
 	if (filenames == NULL) {
 		fprintf(stderr, "bad malloc");
+		free(parentbuffer);
 		exit(EXIT_FAILURE);
 	}
 
 	for(; j < subfiles; j++) {
-		filenames[j] = malloc(sizeof(char) * len);
+		filenames[j] = malloc(len);
 		if (filenames[j] == NULL) {
 			fprintf(stderr, "bad malloc");
+			freeall(parentbuffer, filenames, j);
 			exit(EXIT_FAILURE);
 		}
 	}
