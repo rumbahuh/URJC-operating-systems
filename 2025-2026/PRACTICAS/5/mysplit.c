@@ -4,6 +4,7 @@
 #include <string.h>
 #include <err.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 /* 
  * Passes string to int using strtol.
@@ -43,18 +44,24 @@ int
 calculatesubfiles(int nbytes, char * file, char * buffer)
 {
 	int nr;
-	int current = 0;
 	int nsubfiles = 0;
+	int fd;
 
-	while ((nr = read(current, buffer, nbytes)) != 0) {
-		if (nr < 0) {
-			fprintf(stderr, "can't read\n");
-        	return -1;
-		}
-		current = current + nbytes;
+	fd = open(file, O_RDONLY);
+    if (fd < 0) {
+        fprintf(stderr, "can't open %s\n", file);
+        return -1;
+    }
+
+	while ((nr = read(fd, buffer, nbytes)) > 0) 
 		nsubfiles++;
+	if (nr < 0) {
+		fprintf(stderr, "can't read\n");
+		close(fd);
+    	return -1;
 	}
 	
+	close(fd);
 	return nsubfiles;
 }
 
@@ -77,18 +84,49 @@ createnames(char ** buffernames, int filenumbers, int length, char * filename)
  * Creates file and write bytes from file up to Nbytes.
  */
 int
-splitfile(char ** buffernames, int filenumbers, int nbytes, char * file)
+splitfile(char ** buffernames, int filenumbers, int nbytes, char * file, char * buffer)
 {
 	int i = 0;
-	char * name;
+	int fd_in, fd_out;
+	int nr, nw, written;
+
+	fd_in = open(file, O_RDONLY);
+    if (fd_in < 0) {
+        fprintf(stderr, "can't open %s\n", file);
+        return -1;
+    }
 
 	for(; i < filenumbers; i++) {
-		name = buffernames[i];
-		// createfile name
-		// write nbytes from file in name
-		(void)name;
-	}
+		fd_out = open(buffernames[i], O_WRONLY | O_CREAT | O_TRUNC, 0664); // TRUNC is an spec
 
+		if (fd_out < 0) {
+            fprintf(stderr, "can't open %s\n", buffernames[i]);
+            close(fd_in);
+            return -1;
+        }
+        nr = read(fd_in, buffer, nbytes);
+        if (nr < 0) {
+            fprintf(stderr, "can't read\n");
+            close(fd_out);
+            close(fd_in);
+            return -1;
+        }
+
+		written = 0;
+
+		while (written < nr) {
+            nw = write(fd_out, buffer + written, nr - written);
+            if (nw < 0) {
+                fprintf(stderr, "can't write\n");
+                close(fd_out);
+                close(fd_in);
+                return -1;
+            }
+            written += nw;
+        }
+        close(fd_out);
+    }
+    close(fd_in);
 	return 0;
 }
 
@@ -118,7 +156,6 @@ main(int argc, char* argv[])
 
 	argc--;
 	argv++;
-
 	if (argc != 2) {
 		fprintf(stderr, "usage: mysplit N file\n");
 		exit(EXIT_FAILURE);
@@ -133,6 +170,10 @@ main(int argc, char* argv[])
 		exit(EXIT_FAILURE);
 	}
 	parentbuffer = malloc(sizeof(char) * nbytes);
+	if (parentbuffer == NULL) {
+		fprintf(stderr, "bad malloc");
+		exit(EXIT_FAILURE);
+	}
 
 	subfiles = calculatesubfiles(nbytes, parentfile, parentbuffer);
 	if (subfiles == -1) {
@@ -142,12 +183,21 @@ main(int argc, char* argv[])
 	}
 
 	filenames = malloc(sizeof(char*) * subfiles);
+	if (filenames == NULL) {
+		fprintf(stderr, "bad malloc");
+		exit(EXIT_FAILURE);
+	}
+
 	for(; j < subfiles; j++) {
 		filenames[j] = malloc(sizeof(char) * len);
+		if (filenames[j] == NULL) {
+			fprintf(stderr, "bad malloc");
+			exit(EXIT_FAILURE);
+		}
 	}
 	createnames(filenames, subfiles, len, parentfile);
 
-	status = splitfile(filenames, subfiles, nbytes, parentfile);
+	status = splitfile(filenames, subfiles, nbytes, parentfile, parentbuffer);
 	if (status == -1) {
 			fprintf(stderr, "usage: mysplit N file\n");
 			freeall(parentbuffer, filenames, subfiles);

@@ -1,0 +1,53 @@
+rumbahuh@stokibot:~/OS/URJC-operating-systems/2025-2026/PRACTICAS/5$ seq 0 9 | tr -d '\n' > fich
+rumbahuh@stokibot:~/OS/URJC-operating-systems/2025-2026/PRACTICAS/5$ ./mysplit 3 fich
+rumbahuh@stokibot:~/OS/URJC-operating-systems/2025-2026/PRACTICAS/5$ ls -l
+total 68
+-rw-rw-r-- 1 rumbahuh rumbahuh     3 Apr  7 17:03 000fich
+-rw-rw-r-- 1 rumbahuh rumbahuh     3 Apr  7 17:03 001fich
+-rw-rw-r-- 1 rumbahuh rumbahuh     3 Apr  7 17:03 002fich
+-rw-rw-r-- 1 rumbahuh rumbahuh     1 Apr  7 17:03 003fich
+-rw-rw-r-- 1 rumbahuh rumbahuh    10 Apr  7 17:03 fich
+-rwxrwxr-x 1 rumbahuh rumbahuh 21376 Apr  7 17:02 mysplit
+-rw-rw-r-- 1 rumbahuh rumbahuh  4195 Apr  7 17:02 mysplit.c
+-rw-rw-r-- 1 rumbahuh rumbahuh 14736 Apr  7 17:02 mysplit.o
+rumbahuh@stokibot:~/OS/URJC-operating-systems/2025-2026/PRACTICAS/5$ cat 000fich
+012rumbahuh@stokibot:~/OS/URJC-operating-systems/2025-2026/PRACTICAS/5$ cat 001fich
+345rumbahuh@stokibot:~/OS/URJC-operating-systems/2025-2026/PRACTICAS/5$ cat 002fich
+678rumbahuh@stokibot:~/OS/URJC-operating-systems/2025-2026/PRACTICAS/5$ cat 003fich
+9rumbahuh@stokibot:~/OS/URJC-operating-systems/2025-2026/PRACTICAS/5$ 
+rumbahuh@stokibot:~/OS/URJC-operating-systems/2025-2026/PRACTICAS/5$ ./mysplit 7
+usage: mysplit N file
+rumbahuh@stokibot:~/OS/URJC-operating-systems/2025-2026/PRACTICAS/5$ 
+rumbahuh@stokibot:~/OS/URJC-operating-systems/2025-2026/PRACTICAS/5$ cp /usr/bin/ls .
+rumbahuh@stokibot:~/OS/URJC-operating-systems/2025-2026/PRACTICAS/5$ ./mysplit 30000 ls
+rumbahuh@stokibot:~/OS/URJC-operating-systems/2025-2026/PRACTICAS/5$ cat 0*ls > newls
+rumbahuh@stokibot:~/OS/URJC-operating-systems/2025-2026/PRACTICAS/5$ cmp ls newls
+
+-------------------------
+Segun los profesores:
+$> seq 0 9 | tr -d '\n' > fich
+$> mysplit 3 fich
+$> ls -l
+total 20
+-rw-rw-r-- 1 paurea paurea  3 nov 11 10:55 000fich
+-rw-rw-r-- 1 paurea paurea  3 nov 11 10:55 001fich
+-rw-rw-r-- 1 paurea paurea  3 nov 11 10:55 002fich
+-rw-rw-r-- 1 paurea paurea  1 nov 11 10:55 003fich
+-rw-rw-r-- 1 paurea paurea 10 nov 11 10:55 fich
+$> cat 000fich
+012$> cat 001fich
+345$> cat 002fich
+678$> cat 003fich
+9$>
+$> mysplit 7
+usage: mysplit N file
+$>
+
+Nota: asegúrate de probarlo con ficheros grandes (de texto y binarios), por ejemplo:
+
+$> cp /usr/bin/ls .
+$> mysplit 30000 ls
+$> cat 0*ls > newls
+$> cmp ls newls    #no dice nada, mi split funciona en este caso
+$>
+
