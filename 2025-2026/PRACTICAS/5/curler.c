@@ -20,9 +20,8 @@ checkline(char * linea)
 	char * valid2 = "https://";
 	int status = 0;
 
-	if (strncmp(linea, valid1, 7) == 0 || strncmp(linea, valid2, 8) != 0) {
+	if (strncmp(linea, valid1, 7) != 0 && strncmp(linea, valid2, 8) != 0) {
 		status = 1;
-		fprintf(stderr, "error: invalid line 'patata'\n");
 	}
 
 	return status;
@@ -38,7 +37,7 @@ download(char *linea)
     case -1:
         err(EXIT_FAILURE, "fork failed!");
     case 0:
-        execl("/usr/bin/curl", "curl", "--connect-timeout", "5", linea, NULL);
+        execl("/usr/bin/curl", "curl", "--connect-timeout", "5", "-s", "-o", "/dev/null", linea, NULL);
         err(EXIT_FAILURE, "execl failed");
         break;
     default:
@@ -63,7 +62,6 @@ buffering(int fd)
 	}
 	while (fgets(line, sizeof(line), f) != NULL) {
 		line[strcspn(line, "\n")] = '\0';
-		status = checkline(line);
 		if (checkline(line) != 0) {
             fprintf(stderr, "error: invalid line \"%s\"\n", line);
             status = 255;
@@ -82,7 +80,6 @@ main(int argc, char* argv[])
 {
 	int fd;
 	int n;
-	int statusnumber = 0;
 
 	argc--;
 	argv++;
@@ -96,16 +93,10 @@ main(int argc, char* argv[])
 			err(EXIT_FAILURE, "cannot open file");
 		}
 		n = buffering(fd);
-		if (n != 0) {
-			statusnumber++;
-		}
 
 	} else {
 		n = buffering(STDIN_FILENO);  // fd 0 = stdin
-		if (n != 0) {
-			statusnumber++;
-		}
 	}
 	
-	return statusnumber;
+	return n;
 }
