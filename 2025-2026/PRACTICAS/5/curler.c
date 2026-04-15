@@ -39,6 +39,7 @@ main(int argc, char* argv[])
 	//int index = 0;
 	int fd;
 	int n;
+	int statusnumber = 0;
 
 	argc--;
 	argv++;
@@ -52,7 +53,10 @@ main(int argc, char* argv[])
 			err(EXIT_FAILURE, "cannot open file");
 		}
 		n = buffering(fd);
-		(void)n;
+		if (n != 0) {
+			statusnumber++;
+			fprintf(stderr, "%d err number. couldnt download\n", statusnumber);
+		}
 
 	} else {
 		while (fgets(line, Maxline, stdin) != NULL) {
@@ -61,8 +65,7 @@ main(int argc, char* argv[])
 		if (!feof(stdin)) {
 			errx(EXIT_FAILURE, "eof not reached");
 		}
-		exit(EXIT_SUCCESS);
 	}
 	
-	return EXIT_SUCCESS;
+	return statusnumber;
 }
