@@ -5,12 +5,50 @@
 #include <err.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 
 enum {
 	Maxline = 512,
 };
+
+int
+checkline(char * linea)
+{
+	char * valid1 = "http://";
+	char * valid2 = "https://";
+	int status = 0;
+
+	if (strncmp(linea, valid1, 7) == 0 || strncmp(linea, valid2, 8) != 0) {
+		status = 1;
+		fprintf(stderr, "error: invalid line 'patata'\n");
+	}
+
+	return status;
+}
+
+int
+download(char *linea)
+{
+    int status = 0;
+    pid_t pid;
+
+    switch(pid = fork()) {
+    case -1:
+        err(EXIT_FAILURE, "fork failed!");
+    case 0:
+        execl("/usr/bin/curl", "curl", "--connect-timeout", "5", linea, NULL);
+        err(EXIT_FAILURE, "execl failed");
+        break;
+    default:
+        if (waitpid(pid, &status, 0) < 0)
+            err(EXIT_FAILURE, "waitpid failed");
+        status = WEXITSTATUS(status);
+        break;
+    }
+    return status;
+}
 
 int
 buffering(int fd)
@@ -24,7 +62,15 @@ buffering(int fd)
 		err(EXIT_FAILURE, "cant fopen fd");
 	}
 	while (fgets(line, sizeof(line), f) != NULL) {
-		printf("Línea %s", line);
+		line[strcspn(line, "\n")] = '\0';
+		status = checkline(line);
+		if (checkline(line) != 0) {
+            fprintf(stderr, "error: invalid line \"%s\"\n", line);
+            status = 255;
+        } else {
+            if (download(line) != 0)
+                status = 1;
+        }
 	}
 
 	fclose(f);
@@ -34,9 +80,6 @@ buffering(int fd)
 int
 main(int argc, char* argv[])
 {
-	char line[Maxline];
-	//int numberofurls = 0;
-	//int index = 0;
 	int fd;
 	int n;
 	int statusnumber = 0;
@@ -55,15 +98,12 @@ main(int argc, char* argv[])
 		n = buffering(fd);
 		if (n != 0) {
 			statusnumber++;
-			fprintf(stderr, "%d err number. couldnt download\n", statusnumber);
 		}
 
 	} else {
-		while (fgets(line, Maxline, stdin) != NULL) {
-			printf("line: %s\n", line);
-		}
-		if (!feof(stdin)) {
-			errx(EXIT_FAILURE, "eof not reached");
+		n = buffering(STDIN_FILENO);  // fd 0 = stdin
+		if (n != 0) {
+			statusnumber++;
 		}
 	}
 	
