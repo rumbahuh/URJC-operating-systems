@@ -11,8 +11,13 @@
 
 enum {
 	Maxline = 512,
+
 };
 
+/*
+ * Checks line is valid considering two strings.
+ * Return 0 or 1.
+ */
 int
 checkline(char *linea)
 {
@@ -20,13 +25,19 @@ checkline(char *linea)
 	char *valid2 = "https://";
 	int status = 0;
 
-	if (strncmp(linea, valid1, 7) != 0 && strncmp(linea, valid2, 8) != 0) {
+	if (strncmp(linea, valid1, strlen(valid1)) != 0
+	    && strncmp(linea, valid2, strlen(valid2)) != 0) {
 		status = 1;
 	}
 
 	return status;
 }
 
+/*
+ * Tries to download source with a timeout, silently.
+ * Forks once and father waits for child.
+ * Returns number.
+ */
 int
 download(char *linea)
 {
@@ -50,6 +61,13 @@ download(char *linea)
 	return status;
 }
 
+/*
+ * Opens a file and gets its lines.
+ * Considers errors.
+ * Checks validity and tries to download
+ * with two abstractions.
+ * Returns according code 0-255.
+ */
 int
 buffering(int fd)
 {
@@ -96,7 +114,7 @@ main(int argc, char *argv[])
 		n = buffering(fd);
 
 	} else {
-		n = buffering(STDIN_FILENO);	// fd 0 = stdin
+		n = buffering(STDIN_FILENO);
 	}
 
 	return n;
