@@ -14,10 +14,10 @@ enum {
 };
 
 int
-checkline(char * linea)
+checkline(char *linea)
 {
-	char * valid1 = "http://";
-	char * valid2 = "https://";
+	char *valid1 = "http://";
+	char *valid2 = "https://";
 	int status = 0;
 
 	if (strncmp(linea, valid1, 7) != 0 && strncmp(linea, valid2, 8) != 0) {
@@ -30,23 +30,24 @@ checkline(char * linea)
 int
 download(char *linea)
 {
-    int status = 0;
-    pid_t pid;
+	int status = 0;
+	pid_t pid;
 
-    switch(pid = fork()) {
-    case -1:
-        err(EXIT_FAILURE, "fork failed!");
-    case 0:
-        execl("/usr/bin/curl", "curl", "--connect-timeout", "5", "-s", "-o", "/dev/null", linea, NULL);
-        err(EXIT_FAILURE, "execl failed");
-        break;
-    default:
-        if (waitpid(pid, &status, 0) < 0)
-            err(EXIT_FAILURE, "waitpid failed");
-        status = WEXITSTATUS(status);
-        break;
-    }
-    return status;
+	switch (pid = fork()) {
+	case -1:
+		err(EXIT_FAILURE, "fork failed!");
+	case 0:
+		execl("/usr/bin/curl", "curl", "--connect-timeout", "5", "-s",
+		      "-o", "/dev/null", linea, NULL);
+		err(EXIT_FAILURE, "execl failed");
+		break;
+	default:
+		if (waitpid(pid, &status, 0) < 0)
+			err(EXIT_FAILURE, "waitpid failed");
+		status = WEXITSTATUS(status);
+		break;
+	}
+	return status;
 }
 
 int
@@ -63,12 +64,12 @@ buffering(int fd)
 	while (fgets(line, sizeof(line), f) != NULL) {
 		line[strcspn(line, "\n")] = '\0';
 		if (checkline(line) != 0) {
-            fprintf(stderr, "error: invalid line \"%s\"\n", line);
-            status = 255;
-        } else {
-            if (download(line) != 0)
-                status = 1;
-        }
+			fprintf(stderr, "error: invalid line \"%s\"\n", line);
+			status = 255;
+		} else {
+			if (download(line) != 0)
+				status = 1;
+		}
 	}
 
 	fclose(f);
@@ -76,7 +77,7 @@ buffering(int fd)
 }
 
 int
-main(int argc, char* argv[])
+main(int argc, char *argv[])
 {
 	int fd;
 	int n;
@@ -95,8 +96,8 @@ main(int argc, char* argv[])
 		n = buffering(fd);
 
 	} else {
-		n = buffering(STDIN_FILENO);  // fd 0 = stdin
+		n = buffering(STDIN_FILENO);	// fd 0 = stdin
 	}
-	
+
 	return n;
 }
