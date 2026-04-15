@@ -48,7 +48,7 @@ main(int argc, char* argv[])
 		fprintf(stderr, "error, invalid arguments\n");
 
 	} else if (argc == 1) {
-		fd = open(argv[2], O_RDONLY);
+		fd = open(argv[0], O_RDONLY);
 		if (fd < 0) {
 			err(EXIT_FAILURE, "cannot open file");
 		}
