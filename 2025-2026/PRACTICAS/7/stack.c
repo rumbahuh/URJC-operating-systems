@@ -23,6 +23,7 @@ Stack
 		free(stack);
 		return NULL;
 	}
+	pthread_mutex_init(&stack->lock, NULL);
 
 	return stack;
 }
@@ -44,6 +45,23 @@ isempty(Stack *s)
 void
 push(Stack *s, void *elem)
 {
+	void * tmp;
+	pthread_mutex_lock(&s->lock);
+
+	if (s->elems + 1 > s->size) {
+		tmp = realloc(s->elemento, sizeof(void*) * s->size * 2);
+		if (tmp == NULL) {
+			fprintf(stderr, "error doubling stack array\n");
+			pthread_mutex_unlock(&s->lock);
+			return;
+		}
+		s->elemento = tmp;
+		s->size = s->size * 2;
+	}
+	s->elemento[s->elems] = elem;
+	s->elems = s->elems + 1;
+	
+	pthread_mutex_unlock(&s->lock);
 }
 
 /*
