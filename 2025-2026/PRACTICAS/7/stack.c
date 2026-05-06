@@ -33,7 +33,7 @@ Stack
 int
 isempty(Stack *s)
 {
-	return 0;
+	return s->elems == 0;
 }
 
 /*
