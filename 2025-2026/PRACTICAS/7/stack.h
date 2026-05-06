@@ -1,3 +1,13 @@
+#include <pthread.h>
+
+struct Stack {
+	int size;
+	int elems;
+	void ** elemento;
+	pthread_mutex_t lock;
+};
+typedef struct Stack Stack;
+
 Stack *newstack(int sz);
 int isempty(Stack *s);
 void push(Stack *s, void *elem);

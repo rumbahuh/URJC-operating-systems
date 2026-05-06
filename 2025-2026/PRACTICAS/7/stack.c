@@ -1,4 +1,5 @@
 #include "stack.h"
+#include <stdlib.h>
 
 /*
  * Crea una pila vacía con un array del tamaño dado.
@@ -38,6 +39,7 @@ push(Stack *s, void *elem)
 void *
 pop (Stack *s)
 {
+	return NULL;
 }
 
 /*
@@ -46,6 +48,7 @@ pop (Stack *s)
 int
 nelems(Stack *s)
 {
+	return 0;
 }
 
 /* 
