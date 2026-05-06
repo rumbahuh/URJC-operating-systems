@@ -34,6 +34,7 @@ Stack
 int
 isempty(Stack *s)
 {
+	
 	return s->elems == 0;
 }
 
@@ -59,7 +60,7 @@ push(Stack *s, void *elem)
 		s->size = s->size * 2;
 	}
 	s->elemento[s->elems] = elem;
-	s->elems = s->elems + 1;
+	s->elems++;
 	
 	pthread_mutex_unlock(&s->lock);
 }
@@ -71,8 +72,17 @@ push(Stack *s, void *elem)
  */
 void *
 pop (Stack *s)
-{
-	return NULL;
+{	
+	pthread_mutex_lock(&s->lock);
+
+	if (s->elems == 0) {
+		pthread_mutex_unlock(&s->lock);
+		return NULL;
+	}
+	s->elems--;
+
+	pthread_mutex_unlock(&s->lock);
+	return s->elemento[s->elems];
 }
 
 /*
