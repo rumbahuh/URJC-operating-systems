@@ -34,8 +34,13 @@ Stack
 int
 isempty(Stack *s)
 {
-	
-	return s->elems == 0;
+	int nelems = 0;
+
+	pthread_mutex_lock(&s->lock);
+	nelems = s->elems;
+	pthread_mutex_unlock(&s->lock);
+
+	return nelems == 0;
 }
 
 /*
@@ -90,8 +95,14 @@ pop (Stack *s)
  */
 int
 nelems(Stack *s)
-{
-	return 0;
+{	
+	int nelems = 0;
+
+	pthread_mutex_lock(&s->lock);
+	nelems = s->elems;
+	pthread_mutex_unlock(&s->lock);
+
+	return nelems;
 }
 
 /* 
@@ -103,6 +114,17 @@ nelems(Stack *s)
 void
 dumpstack(Stack *s)
 {
+	int i = 0;
+	
+	pthread_mutex_lock(&s->lock);
+	fprintf(stderr, "--- Stack ---\n");
+	fprintf(stderr, "- capacidad: %d\n", s->size);
+	fprintf(stderr, "- almacenados: %d\n", s->elems);
+	for (; i < s->elems; i++) {
+		fprintf(stderr, "--> %p\n", s->elemento[i]);
+	}
+
+	pthread_mutex_unlock(&s->lock);
 }
 
 /* Libera toda la memoria de la pila.
