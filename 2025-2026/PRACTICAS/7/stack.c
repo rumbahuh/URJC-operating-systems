@@ -115,7 +115,7 @@ void
 dumpstack(Stack *s)
 {
 	int i = 0;
-	
+
 	pthread_mutex_lock(&s->lock);
 	fprintf(stderr, "--- Stack ---\n");
 	fprintf(stderr, "- capacidad: %d\n", s->size);
@@ -138,4 +138,7 @@ dumpstack(Stack *s)
 void
 freestack(Stack *s)
 {
+	free(s->elemento);
+	pthread_mutex_destroy(&s->lock);
+	free(s);
 }
