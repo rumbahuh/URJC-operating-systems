@@ -1,5 +1,6 @@
 #include "stack.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 /*
  * Crea una pila vacía con un array del tamaño dado.
@@ -9,7 +10,21 @@
 Stack
 *newstack(int sz)
 {
-	return NULL;
+	Stack *stack = malloc(sizeof(Stack));
+	if (stack == NULL) {
+		fprintf(stderr, "error, failed to malloc stack\n");
+		return NULL;
+	}
+	stack->size = sz;
+	stack->elems = 0;
+	stack->elemento = malloc(sizeof(void *) * sz);
+	if (stack->elemento == NULL) {
+		fprintf(stderr, "error, failed to malloc stack array\n");
+		free(stack);
+		return NULL;
+	}
+
+	return stack;
 }
 
 /*
