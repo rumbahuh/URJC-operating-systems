@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
 #include "stack.h"
 
 struct Value {
@@ -40,14 +43,13 @@ rellenarstack(void *arg)
 			return NULL;
 		}
 		Value *v = (Value*) poppedelem;
-		if (v == NULL) {
-			fprintf(stderr, "error casting\n");
-			return NULL;
-		}
 		if (v->id != threaddna->id) {
-			fprintf(stdout, "%d", counter);
+			counter++;
 		}
+		free(v);
 	}
+
+	fprintf(stdout, "Thread %d: %d elementos ajenos\n", threaddna->id, counter);
 
 	return NULL;
 }
@@ -56,6 +58,11 @@ int main(int argc, char* argv[])
 {
 	int total = 100;
 	Stack *stack = newstack(total);
+	if (stack == NULL) {
+		fprintf(stderr, "error to create stack\n");
+		return 1;
+	}
+	
 	pthread_t threads[total];
 	Args *args[total];
 
@@ -85,6 +92,7 @@ int main(int argc, char* argv[])
 	for (int j = 0; j < i; j++) {
 		free(args[j]);
 	}
+	freestack(stack);
 
 	return 0;
 }
