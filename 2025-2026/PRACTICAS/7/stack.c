@@ -78,6 +78,7 @@ push(Stack *s, void *elem)
 void *
 pop (Stack *s)
 {	
+	void *elem;
 	pthread_mutex_lock(&s->lock);
 
 	if (s->elems == 0) {
@@ -86,8 +87,9 @@ pop (Stack *s)
 	}
 	s->elems--;
 
+	elem = s->elemento[s->elems];
 	pthread_mutex_unlock(&s->lock);
-	return s->elemento[s->elems];
+	return elem;
 }
 
 /*
