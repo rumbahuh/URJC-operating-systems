@@ -11,7 +11,7 @@ typedef struct Value Value;
 
 struct Args {
 	int id;
-	Stack *s;	
+	Stack *s;
 };
 typedef struct Args Args;
 
@@ -19,7 +19,7 @@ typedef struct Args Args;
  * Cada thread inserta 100 elementos y extrae 40.
  * Ademas cuenta cuántos no son suyos.
  */
-void*
+void *
 rellenarstack(void *arg)
 {
 	int i = 0, j = 0;
@@ -27,10 +27,11 @@ rellenarstack(void *arg)
 	int idmax = 100;
 	int counter = 0;
 
-	Args *threaddna = (Args*) arg;
+	Args *threaddna = (Args *)arg;
 
-	for(; i < idmax; i++) {
+	for (; i < idmax; i++) {
 		Value *value = malloc(sizeof(Value));
+
 		if (value == NULL) {
 			fprintf(stderr, "error to malloc value\n");
 			return NULL;
@@ -40,20 +41,23 @@ rellenarstack(void *arg)
 		push(threaddna->s, value);
 	}
 
-	for(; j < topop; j++) {
+	for (; j < topop; j++) {
 		void *poppedelem = pop(threaddna->s);
+
 		if (poppedelem == NULL) {
 			fprintf(stderr, "error popped element returned NULL\n");
 			return NULL;
 		}
-		Value *v = (Value*) poppedelem;
+		Value *v = (Value *)poppedelem;
+
 		if (v->id != threaddna->id) {
 			counter++;
 		}
 		free(v);
 	}
 
-	fprintf(stdout, "Thread %d: %d elementos ajenos\n", threaddna->id, counter);
+	fprintf(stdout, "Thread %d: %d elementos ajenos\n", threaddna->id,
+		counter);
 
 	return NULL;
 }
@@ -67,56 +71,65 @@ printall(Stack *s, int total)
 {
 	// Hay 100 ids
 	int lastseen[100];
+
 	for (int k = 0; k < 100; k++)
-        lastseen[k] = 100;
+		lastseen[k] = 100;
 
 	for (int i = 0; i < total; i++) {
-        Value *v = (Value *)pop(s);
+		Value *v = (Value *)pop(s);
+
 		// Si el valor no es estrictamente decreciente respecto al anterior del mismo id
-        if (v->v >= lastseen[v->id]) {
-            fprintf(stderr, "error: id %d, valor %d no es decreciente (anterior: %d)\n",
-                    v->id, v->v, lastseen[v->id]);
+		if (v->v >= lastseen[v->id]) {
+			fprintf(stderr,
+				"error: id %d, valor %d no es decreciente (anterior: %d)\n",
+				v->id, v->v, lastseen[v->id]);
 			dumpstack(s);
-            free(v);
+			free(v);
 
 			// Liberamos los elementos restantes de la pila antes de salir
 			void *elem;
-            while ((elem = pop(s)) != NULL)
-                free(elem);
-            return 1;
-        }
+
+			while ((elem = pop(s)) != NULL)
+				free(elem);
+			return 1;
+		}
 		// Actualizamos el valor anterior
-        lastseen[v->id] = v->v;
-        free(v);
-    }
+		lastseen[v->id] = v->v;
+		free(v);
+	}
 
 	return 0;
 }
 
-int main(int argc, char* argv[])
+int
+main(int argc, char *argv[])
 {
 	(void)argc;
 	(void)argv;
 
 	int status = 0;
+
 	// Índices sobre los que iteramos
 	int i = 0, j = 0, w = 0;
 
 	int total = 100;
 
 	Stack *stack = newstack(total);
+
 	if (stack == NULL) {
 		fprintf(stderr, "error to create stack\n");
 		return 1;
 	}
 
 	pthread_t *threads = malloc(sizeof(pthread_t) * total);
+
 	if (threads == NULL) {
 		fprintf(stderr, "error malloc threads\n");
 		freestack(stack);
 		return 1;
 	}
-	Args     **args    = malloc(sizeof(Args *)    * total);
+	Args **args = malloc(sizeof(Args *) * total);
+
 	if (args == NULL) {
 		fprintf(stderr, "error malloc args\n");
 		freestack(stack);
@@ -135,7 +148,8 @@ int main(int argc, char* argv[])
 		args[i]->id = i;
 		args[i]->s = stack;
 
-		if (pthread_create(&threads[i], NULL, rellenarstack, args[i]) != 0) {
+		if (pthread_create(&threads[i], NULL, rellenarstack, args[i]) !=
+		    0) {
 			fprintf(stderr, "error creating thread %d\n", i);
 			free(args[i]);
 			status = 1;
@@ -150,11 +164,13 @@ int main(int argc, char* argv[])
 
 	// Última especificación
 	int elementosfinales = nelems(stack);
-	if (elementosfinales != (60*100)) {
+
+	if (elementosfinales != (60 * 100)) {
 		fprintf(stderr, "error in nelems in stack\n");
 		// Imprimimos el estado de la pila
 		dumpstack(stack);
 		void *elem;
+
 		while ((elem = pop(stack)) != NULL)
 			free(elem);
 		status = 1;

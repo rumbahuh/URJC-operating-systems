@@ -7,10 +7,11 @@
  * El tamaño debe ser mayor que cero. 
  * En caso de error, devolverá NULL.
  */
-Stack
-*newstack(int sz)
+Stack *
+newstack(int sz)
 {
 	Stack *stack = malloc(sizeof(Stack));
+
 	if (stack == NULL) {
 		fprintf(stderr, "error, failed to malloc stack\n");
 		return NULL;
@@ -51,11 +52,12 @@ isempty(Stack *s)
 void
 push(Stack *s, void *elem)
 {
-	void * tmp;
+	void *tmp;
+
 	pthread_mutex_lock(&s->lock);
 
 	if (s->elems + 1 > s->size) {
-		tmp = realloc(s->elemento, sizeof(void*) * s->size * 2);
+		tmp = realloc(s->elemento, sizeof(void *) * s->size * 2);
 		if (tmp == NULL) {
 			fprintf(stderr, "error doubling stack array\n");
 			pthread_mutex_unlock(&s->lock);
@@ -66,7 +68,7 @@ push(Stack *s, void *elem)
 	}
 	s->elemento[s->elems] = elem;
 	s->elems++;
-	
+
 	pthread_mutex_unlock(&s->lock);
 }
 
@@ -76,9 +78,10 @@ push(Stack *s, void *elem)
  * el tamaño del array en ningún caso.
  */
 void *
-pop (Stack *s)
-{	
+pop(Stack *s)
+{
 	void *elem;
+
 	pthread_mutex_lock(&s->lock);
 
 	if (s->elems == 0) {
@@ -97,7 +100,7 @@ pop (Stack *s)
  */
 int
 nelems(Stack *s)
-{	
+{
 	int nelems = 0;
 
 	pthread_mutex_lock(&s->lock);
