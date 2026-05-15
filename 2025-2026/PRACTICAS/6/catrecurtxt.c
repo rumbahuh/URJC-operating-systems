@@ -12,7 +12,7 @@
    de cada .txt que encuentre en outfd.
 */
 static void
-explorar_carpeta(const char *dirpath, int outfd)
+explorarcarpeta(const char *dirpath, int outfd)
 {
 	DIR *carpeta = opendir(dirpath);
 
@@ -20,16 +20,16 @@ explorar_carpeta(const char *dirpath, int outfd)
 		err(EXIT_FAILURE, "No puedo abrir la carpeta: %s", dirpath);
 
 	struct dirent *entrada;	// cada cosa que hay dentro de la carpeta
-	struct stat info;	// información sobre esa cosa
+	struct stat info;
 
 	while ((entrada = readdir(carpeta)) != NULL) {
 
-		// saltamos "." y ".." o entraríamos en bucle infinito
+		// me salto "." y ".." para no entrar en bucle un infinito
 		if (strcmp(entrada->d_name, ".") == 0 ||
 		    strcmp(entrada->d_name, "..") == 0)
 			continue;
 
-		// construimos la ruta completa: "carpeta/nombre"
+		// ruta
 		size_t longitud =
 		    strlen(dirpath) + 1 + strlen(entrada->d_name) + 1;
 		char *ruta = malloc(longitud);
@@ -39,16 +39,15 @@ explorar_carpeta(const char *dirpath, int outfd)
 
 		snprintf(ruta, longitud, "%s/%s", dirpath, entrada->d_name);
 
-		// lstat nos dice si es carpeta, fichero, enlace...
+		// comprobamos tipo
 		if (lstat(ruta, &info) == -1)
 			err(EXIT_FAILURE, "No puedo leer info de: %s", ruta);
 
 		if (S_ISDIR(info.st_mode)) {
-			// es una subcarpeta, nos metemos dentro
-			explorar_carpeta(ruta, outfd);
+			// nos metemos en la subcarpeta
+			explorarcarpeta(ruta, outfd);
 		} else if (S_ISREG(info.st_mode)) {
 
-			// comprobamos si el nombre termina en ".txt"
 			size_t len = strlen(entrada->d_name);
 			int es_txt = (len >= 4) &&
 			    (strcmp(entrada->d_name + len - 4, ".txt") == 0);
@@ -60,13 +59,11 @@ explorar_carpeta(const char *dirpath, int outfd)
 					err(EXIT_FAILURE, "No puedo abrir: %s",
 					    ruta);
 
-				// leemos a trozos para no cargar el fichero entero en memoria
 				char trozo[4096];
 				ssize_t leidos;
 
 				while ((leidos =
 					read(fd, trozo, sizeof trozo)) > 0) {
-					// write a veces escribe menos de lo pedido, así que reintentamos
 					char *p = trozo;
 					ssize_t pendiente = leidos;
 
@@ -102,17 +99,17 @@ main(int argc, char *argv[])
 	argv++;
 
 	if (argc != 1)
-		errx(EXIT_FAILURE, "Uso: catrecurtxt <fichero_de_salida>");
+		errx(EXIT_FAILURE, "usage: catrecurtxt [file]");
 
-	// abrimos el fichero de salida, si ya existe lo vaciamos con O_TRUNC
+	// spec
 	int salida = open(argv[0], O_WRONLY | O_CREAT | O_TRUNC, 0666);
 
 	if (salida == -1)
 		err(EXIT_FAILURE, "No puedo abrir el fichero de salida: %s",
 		    argv[0]);
 
-	// empezamos a explorar desde la carpeta actual
-	explorar_carpeta(".", salida);
+	// desde carpeta actual
+	explorarcarpeta(".", salida);
 
 	close(salida);
 	return EXIT_SUCCESS;
